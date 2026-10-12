@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>REsGuarD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="cabecera">
+    <h1 class="marca">RE<i>s</i>G<i>uar</i>D</h1>
+    <dl class="totales" id="totales"></dl>
+    <button type="button" class="discreto" id="abrir-ajustes">Ajustes</button>
+  </header>
+
+  <main>
+    <form id="alta" class="alta" autocomplete="off" novalidate>
+      <label class="campo ancho">
+        <span>Repositorio</span>
+        <input name="repo" placeholder="owner/repo o URL de GitHub" spellcheck="false" autocapitalize="off" required>
+      </label>
+      <label class="campo">
+        <span>Copiar cada</span>
+        <span class="unidad"><input name="frecuencia" type="number" inputmode="numeric" min="1" max="8760" step="1" value="24" required><em>h</em></span>
+      </label>
+      <label class="campo">
+        <span>Guardar</span>
+        <span class="unidad"><input name="dias" type="number" inputmode="numeric" min="1" max="3650" step="1" value="30" required><em>días</em></span>
+      </label>
+      <button type="submit" class="primario">Añadir</button>
+      <p class="mensaje" id="alta-mensaje" role="alert"></p>
+    </form>
+
+    <p class="banda" id="banda" hidden></p>
+    <section id="fuentes" class="lista"></section>
+  </main>
+
+  <dialog id="ajustes">
+    <form method="dialog" id="form-ajustes">
+      <h2>Ajustes</h2>
+      <label class="campo">
+        <span>Carpeta de destino</span>
+        <input name="carpeta" spellcheck="false" autocapitalize="off" placeholder="/ruta/absoluta/de/las/copias">
+      </label>
+      <p class="ayuda">Ruta absoluta donde se guardan las copias; puede ser una unidad de red montada. Si la cambias, las copias ya hechas no se mueven.</p>
+      <h3>Avisos por Telegram</h3>
+      <p class="ayuda">Si un repositorio desaparece, se vacía o falla la copia, el bot escribe a esta conversación. «Enviar prueba» guarda los ajustes antes de probar; «Cancelar» no los deshace.</p>
+      <label class="campo">
+        <span>Token del bot</span>
+        <input name="token" type="password" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="campo">
+        <span>ID de conversación</span>
+        <input name="chat" inputmode="text" spellcheck="false" placeholder="-1001234567890">
+      </label>
+      <p class="mensaje" id="ajustes-mensaje" role="alert"></p>
+      <footer>
+        <button type="button" class="discreto" id="probar">Enviar prueba</button>
+        <span class="hueco"></span>
+        <button type="button" class="discreto" data-cerrar>Cancelar</button>
+        <button type="submit" class="primario">Guardar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="editar">
+    <form method="dialog" id="form-editar">
+      <h2 id="editar-titulo"></h2>
+      <label class="campo">
+        <span>Copiar cada</span>
+        <span class="unidad"><input name="frecuencia" type="number" inputmode="numeric" min="1" max="8760" step="1" required><em>h</em></span>
+      </label>
+      <label class="campo">
+        <span>Guardar</span>
+        <span class="unidad"><input name="dias" type="number" inputmode="numeric" min="1" max="3650" step="1" required><em>días</em></span>
+      </label>
+      <label class="casilla"><input name="activa" type="checkbox"> Copiar automáticamente</label>
+      <p class="mensaje" id="editar-mensaje" role="alert"></p>
+      <footer>
+        <span class="hueco"></span>
+        <button type="button" class="discreto" data-cerrar>Cancelar</button>
+        <button type="submit" class="primario">Guardar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="quitar">
+    <form method="dialog" id="form-quitar">
+      <h2 id="quitar-titulo"></h2>
+      <p class="ayuda">Dejará de copiarse. Lo ya guardado en la carpeta de destino se conserva.</p>
+      <label class="casilla peligro"><input name="borrar" type="checkbox"> Borrar también las copias guardadas</label>
+      <p class="mensaje" id="quitar-mensaje" role="alert"></p>
+      <footer>
+        <span class="hueco"></span>
+        <button type="button" class="discreto" data-cerrar>Cancelar</button>
+        <button type="submit" class="primario peligro">Quitar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "resguard",
+  "version": "0.1.0",
+  "description": "Copias periódicas de repositorios públicos de GitHub con instantáneas fechadas y avisos por Telegram",
+  "license": "GPL-3.0-or-later",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "11.10.0",
+    "express": "^4.21.2"
+  }
+}
