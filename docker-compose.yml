@@ -1,0 +1,20 @@
+# Copia .env.example a .env, indica ahí la carpeta de las copias y arranca con:
+#   docker compose up -d --build
+# Después abre la web, entra en Ajustes y pon /copias como carpeta de destino.
+
+services:
+  resguard:
+    build: .
+    image: resguard:local
+    container_name: resguard
+    restart: unless-stopped
+    ports:
+      - "${RESGUARD_PUERTO:-3200}:3200"
+    volumes:
+      # Base de datos y carpeta de trabajo temporal.
+      - resguard-datos:/data
+      # Carpeta del anfitrión donde se guardan las copias.
+      - "${RESGUARD_COPIAS:?Indica en .env la carpeta donde guardar las copias (RESGUARD_COPIAS)}:/copias"
+
+volumes:
+  resguard-datos:

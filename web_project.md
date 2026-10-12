@@ -22,6 +22,7 @@ Copias de seguridad periódicas de repositorios públicos de GitHub (código, wi
 - [x] Revisión final de toda la rama y arreglos
 - [x] Licencia GPL, README y limpieza de datos de la máquina para publicar
 - [x] Publicado en GitHub
+- [x] Despliegue con Docker (Dockerfile, compose y comprobación automática en GitHub)
 
 ## Tareas Pendientes
 

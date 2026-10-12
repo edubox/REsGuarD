@@ -1,0 +1,85 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm test
+
+  imagen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir la imagen
+        run: docker build -t resguard:ci .
+
+      - name: Arrancar el contenedor
+        run: |
+          mkdir -p "$RUNNER_TEMP/copias"
+          # Sin --init a propósito: así el paso de «parada limpia» prueba que el
+          # propio servicio atiende SIGTERM siendo el proceso 1.
+          docker run -d --name resguard -p 3200:3200 -v "$RUNNER_TEMP/copias:/copias" resguard:ci
+          for i in $(seq 1 30); do
+            curl -fs localhost:3200/api/resumen && break
+            sleep 1
+          done
+          curl -fs localhost:3200/ | grep -q '<title>REsGuarD</title>'
+
+      - name: Configurar la carpeta de destino
+        run: |
+          curl -fs -X PUT localhost:3200/api/ajustes \
+            -H 'Content-Type: application/json' -d '{"carpetaDestino":"/copias"}'
+          sudo test -f "$RUNNER_TEMP/copias/.resguard"
+
+      - name: Copia real de un repositorio dentro del contenedor
+        run: |
+          curl -fs -X POST localhost:3200/api/fuentes \
+            -H 'Content-Type: application/json' \
+            -d '{"repo":"octocat/Hello-World","frecuenciaHoras":24,"diasGuardar":30}'
+          sleep 2
+          for i in $(seq 1 90); do
+            curl -fs localhost:3200/api/resumen | grep -q '"en_curso":false' && break
+            sleep 2
+          done
+          curl -fs localhost:3200/api/fuentes
+          echo
+          # El código va por git; el release va por la API, que en los ejecutores
+          # compartidos puede estar limitada. Lo que se exige es la instantánea.
+          sudo ls "$RUNNER_TEMP/copias/github/octocat/Hello-World/snapshots/" | grep 'code\.bundle$'
+          sudo test -d "$RUNNER_TEMP/copias/github/octocat/Hello-World/mirror.git"
+
+      - name: El contenedor está sano
+        run: |
+          for i in $(seq 1 30); do
+            estado=$(docker inspect -f '{{.State.Health.Status}}' resguard)
+            [ "$estado" = "healthy" ] && break
+            sleep 2
+          done
+          test "$estado" = "healthy"
+
+      - name: Parada limpia
+        run: |
+          inicio=$(date +%s)
+          docker stop resguard
+          fin=$(date +%s)
+          echo "docker stop tardó $((fin - inicio)) s"
+          test $((fin - inicio)) -lt 8
+          test "$(docker inspect -f '{{.State.ExitCode}}' resguard)" = "0"
+
+      - name: Registro del contenedor
+        if: always()
+        run: docker logs resguard

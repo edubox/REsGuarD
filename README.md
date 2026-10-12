@@ -65,7 +65,53 @@ Si más adelante la unidad deja de estar montada, la web lo dice en una banda
 («La carpeta de destino no está disponible ahora mismo»), «Libre en destino»
 queda en «—» y las copias fallan con aviso, sin escribir nada, hasta que vuelva.
 
-### Arranque con la máquina y actualización
+### Con Docker
+
+Si prefieres no instalar Node, el repositorio trae un `Dockerfile` y un
+`docker-compose.yml`. La imagen ya incluye `git` y `rsync`.
+
+```bash
+cp .env.example .env       # y edita RESGUARD_COPIAS: la carpeta donde guardar las copias
+docker compose up -d --build
+```
+
+Abre `http://<tu-servidor>:3200`, entra en **Ajustes** y pon **`/copias`** como
+carpeta de destino: es el nombre con el que el contenedor ve la carpeta que
+indicaste en `RESGUARD_COPIAS`. Todas las rutas que muestre la web serán las
+del contenedor (`/copias/github/...`); en el anfitrión están bajo la carpeta
+que pusiste en `.env`.
+
+| Dentro del contenedor | Qué es | En el `docker-compose.yml` |
+|---|---|---|
+| `/copias` | Las copias | La carpeta de `RESGUARD_COPIAS` |
+| `/data` | Base de datos (repositorios, ajustes, token de Telegram) y carpeta de trabajo | El volumen `resguard-datos` |
+
+Sin compose:
+
+```bash
+docker build -t resguard .
+docker run -d --name resguard --restart unless-stopped -p 3200:3200 \
+  -v resguard-datos:/data -v /ruta/de/tus/copias:/copias resguard
+```
+
+Para actualizar: `git pull && docker compose up -d --build`. Los datos y las
+copias están en los volúmenes y no se pierden.
+
+Si la carpeta de las copias es una **unidad de red**:
+
+- Móntala en el anfitrión **antes** de arrancar el contenedor. Si no lo está,
+  el contenedor ve una carpeta vacía; como le falta el fichero `.resguard`, no
+  copia nada y avisa.
+- Si la unidad se monta después de arrancar el contenedor, este no la ve hasta
+  que lo reinicies (`docker compose restart`), salvo que montes el volumen con
+  propagación (`/ruta:/copias:rslave`).
+- El contenedor se ejecuta como `root`, que es lo que suele hacer falta para
+  escribir en una unidad SMB montada por el sistema.
+
+`docker stop` detiene el servicio al momento. Si había una copia a medias, pasa
+lo descrito en «Si el servicio se reinicia a mitad de una copia».
+
+### Sin Docker: arranque con la máquina y actualización
 
 Con pm2, para que el servicio arranque solo tras un reinicio de la máquina:
 
